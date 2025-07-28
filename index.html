@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام تقييم سلوكي للعملاء</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #18181b; /* Zinc 900 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            padding-top: 5rem; /* Add padding to prevent content from being hidden behind fixed nav */
+        }
+        .container {
+            background-color: #27272a; /* Zinc 800 */
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* Darker shadow */
+            padding: 2rem;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+            color: #d4d4d8; /* Zinc 200 for general text */
+        }
+        input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .hidden {
+            display: none;
+        }
+        /* Navigation specific styles */
+        .nav-link {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .nav-link:hover {
+            background-color: #3f3f46; /* Zinc 700 */
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="bg-zinc-900 p-4 shadow-lg fixed top-0 left-0 w-full z-10">
+        <div class="container mx-auto flex justify-between items-center">
+            <!-- Logo/Brand -->
+            <div class="text-2xl font-extrabold text-blue-400">B-SCORE</div>
+
+            <!-- Navigation Links -->
+            <div id="navbarNav" class="flex-grow flex justify-end items-center space-x-4 space-x-reverse">
+                <button class="nav-link text-zinc-200 hover:text-blue-400 font-semibold" data-target="landingPage">الصفحة الرئيسية</button>
+                <button class="nav-link text-zinc-200 hover:text-blue-400 font-semibold hidden" data-target="evaluationForm" id="navEvalLink">إضافة/تعديل تقييم</button>
+                <button class="nav-link text-zinc-200 hover:text-blue-400 font-semibold hidden" data-target="searchPage" id="navSearchLink">البحث عن عميل</button>
+                <!-- New: Register New User button in nav (hidden when logged in) -->
+                <button class="nav-link text-zinc-200 hover:text-blue-400 font-semibold hidden" data-target="registerPage" id="navRegisterLink">تسجيل مستخدم جديد</button>
+            </div>
+
+            <!-- Login/Logout Button in nav (controls overall login state) -->
+            <div>
+                <button id="authButton" class="bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 ease-in-out">تسجيل الدخول</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Landing Page Section -->
+        <div id="landingPage" class="text-center">
+            <h1 class="text-4xl font-extrabold text-zinc-50 mb-4 leading-tight mt-8">
+                اول منصة في العالم لتقييم سلوكيات العملاء لمساعدتك
+            </h1>
+            <p class="text-lg text-zinc-200 mb-6">
+                في عالم التجارة الإلكترونية والشحن سريع التطور، حيث يتزايد الاعتماد على التوصيل السريع وتتنوع توقعات العملاء، يصبح فهم سلوك العميل وتحليله بدقة أمرًا حاسمًا لنجاح الأعمال. نظام B-SCORE مصمم خصيصًا ليمنحك هذه القدرة، محولاً البيانات الخام إلى رؤى استراتيجية قابلة للتنفيذ.
+            </p>
+
+            <!-- New: Login/Register buttons for non-logged-in users on landing page -->
+            <div id="landingAuthButtons" class="flex flex-col md:flex-row justify-center gap-4 mb-8">
+                <button id="landingLoginBtn" class="w-full md:w-auto bg-blue-600 text-white py-3 px-8 rounded-lg font-semibold text-lg hover:bg-blue-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg" data-target="loginPage">
+                    تسجيل الدخول
+                </button>
+                <button id="landingRegisterBtn" class="w-full md:w-auto bg-purple-600 text-white py-3 px-8 rounded-lg font-semibold text-lg hover:bg-purple-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg" data-target="registerPage">
+                    تسجيل مستخدم جديد
+                </button>
+            </div>
+
+            <p class="text-lg text-zinc-200 mb-8 font-semibold">
+                اكتشف كيف يمكن لـ B-SCORE أن يعزز كفاءتك التشغيلية، يقلل من المخاطر، ويزيد من ولاء عملائك، مما يدفع أعمالك نحو نمو غير مسبوق.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="bg-zinc-700 p-6 rounded-lg shadow-sm border border-zinc-600">
+                    <h2 class="text-xl font-bold text-blue-300 mb-3">لشركات الشحن: تحسين الكفاءة التشغيلية</h2>
+                    <ul class="list-disc list-inside text-zinc-200 text-right space-y-2">
+                        <li>**تقليل المرتجعات والإلغاءات:** تحديد العملاء ذوي السلوكيات السلبية مسبقًا لتقليل الخسائر.</li>
+                        <li>**تحسين مسارات التسليم:** توجيه الموارد بذكاء للعملاء الموثوقين.</li>
+                        <li>**تحديد العملاء الموثوقين (VIP):** تقديم خدمة مميزة للعملاء ذوي السجل الإيجابي.</li>
+                        <li>**تقليل التكاليف التشغيلية:** من خلال إدارة أفضل للمخاطر وتجنب التعاملات المكلفة.</li>
+                        <li>**تعزيز رضا العملاء:** بتقديم تجربة توصيل سلسة وموثوقة.</li>
+                    </ul>
+                </div>
+                <div class="bg-zinc-700 p-6 rounded-lg shadow-sm border border-zinc-600">
+                    <h2 class="text-xl font-bold text-green-300 mb-3">للمتاجر الإلكترونية: تعزيز ولاء العملاء وزيادة المبيعات</h2>
+                    <ul class="list-disc list-inside text-zinc-200 text-right space-y-2">
+                        <li>**بناء ولاء العملاء:** تحديد العملاء الأكثر قيمة وتقديم عروض مخصصة لهم.</li>
+                        <li>**تقليل النزاعات والشكاوى:** فهم أنماط سلوك العملاء لتجنب المشاكل المحتملة.</li>
+                        <li>**تحسين تجربة التسوق:** تخصيص العروض والخدمات بناءً على تاريخ العميل.</li>
+                        <li>**زيادة معدلات الاحتفاظ بالعملاء:** من خلال استراتيجيات استباقية مبنية على البيانات.</li>
+                        <li>**دعم اتخاذ القرار:** توفير رؤى دقيقة للتسويق وإدارة المخزون.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- New Section: Why Choose B-SCORE? -->
+            <div class="bg-zinc-700 p-6 rounded-lg border border-zinc-600 mb-10 text-right">
+                <h2 class="text-xl font-bold text-yellow-300 mb-4">لماذا تختار B-SCORE؟</h2>
+                <ul class="list-disc list-inside text-zinc-200 space-y-2">
+                    <li>**تقييم شامل ودقيق:** نظام متكامل يحلل جوانب متعددة من سلوك العميل.</li>
+                    <li>**رؤى قابلة للتنفيذ:** لا مجرد بيانات، بل توصيات واضحة لتحسين الأداء.</li>
+                    <li>**واجهة سهلة الاستخدام:** تصميم بديهي يضمن تجربة سلسة للمستخدمين.</li>
+                    <li>**قابلية التوسع:** مصمم ليتناسب مع نمو أعمالك واحتياجاتك المتغيرة.</li>
+                    <li>**دعم اتخاذ القرار:** يوفر لك الأدوات اللازمة لاتخاذ قرارات مستنيرة بثقة.</li>
+                </ul>
+            </div>
+
+            <div id="landingActionButtons" class="flex flex-col md:flex-row justify-center gap-4 hidden">
+                <button id="startEvaluationBtn" class="w-full md:w-auto bg-blue-600 text-white py-3 px-8 rounded-lg font-semibold text-lg hover:bg-blue-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg">
+                    ابدأ التقييم الآن
+                </button>
+                <button id="goToSearchBtn" class="w-full md:w-auto bg-zinc-700 text-zinc-100 py-3 px-8 rounded-lg font-semibold text-lg hover:bg-zinc-600 transition duration-300 ease-in-out shadow-md hover:shadow-lg">
+                    البحث عن عميل
+                </button>
+            </div>
+        </div>
+
+        <!-- Login Page Section (Initially Hidden) -->
+        <div id="loginPage" class="hidden">
+            <h1 class="text-3xl font-bold text-zinc-50 mb-6">تسجيل الدخول</h1>
+            <div class="mb-4 text-right">
+                <label for="loginEmail" class="block text-zinc-200 text-sm font-semibold mb-2">البريد الإلكتروني:</label>
+                <input type="email" id="loginEmail" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-zinc-100" placeholder="أدخل بريدك الإلكتروني">
+            </div>
+            <div class="mb-6 text-right">
+                <label for="loginPassword" class="block text-zinc-200 text-sm font-semibold mb-2">كلمة المرور:</label>
+                <input type="password" id="loginPassword" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-zinc-100" placeholder="أدخل كلمة المرور">
+            </div>
+            <button id="loginSubmitBtn" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg">
+                تسجيل الدخول
+            </button>
+            <button id="backToLandingFromLogin" class="mt-6 w-full md:w-auto bg-zinc-700 text-zinc-100 py-2 px-6 rounded-lg font-semibold hover:bg-zinc-600 transition duration-300 ease-in-out">
+                العودة للصفحة الرئيسية
+            </button>
+        </div>
+
+        <!-- Register Page Section (Initially Hidden) -->
+        <div id="registerPage" class="hidden">
+            <h1 class="text-3xl font-bold text-zinc-50 mb-6">تسجيل مستخدم جديد</h1>
+            <div class="mb-4 text-right">
+                <label for="registerEmail" class="block text-zinc-200 text-sm font-semibold mb-2">البريد الإلكتروني:</label>
+                <input type="email" id="registerEmail" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-zinc-100" placeholder="أدخل بريدك الإلكتروني">
+            </div>
+            <div class="mb-4 text-right">
+                <label for="registerPassword" class="block text-zinc-200 text-sm font-semibold mb-2">كلمة المرور:</label>
+                <input type="password" id="registerPassword" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-zinc-100" placeholder="أدخل كلمة المرور">
+            </div>
+            <div class="mb-6 text-right">
+                <label for="confirmPassword" class="block text-zinc-200 text-sm font-semibold mb-2">تأكيد كلمة المرور:</label>
+                <input type="password" id="confirmPassword" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-zinc-100" placeholder="أعد إدخال كلمة المرور">
+            </div>
+            <button id="registerSubmitBtn" class="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg">
+                تسجيل
+            </button>
+            <button id="backToLandingFromRegister" class="mt-6 w-full md:w-auto bg-zinc-700 text-zinc-100 py-2 px-6 rounded-lg font-semibold hover:bg-zinc-600 transition duration-300 ease-in-out">
+                العودة للصفحة الرئيسية
+            </button>
+        </div>
+
+        <!-- Customer Evaluation Form Section (Initially Hidden) -->
+        <div id="evaluationForm" class="hidden">
+            <h1 class="text-3xl font-bold text-zinc-50 mb-6">إضافة/تعديل تقييم عميل</h1>
+
+            <div class="mb-4 text-right">
+                <label for="customerIdInput" class="block text-zinc-200 text-sm font-semibold mb-2">معرف العميل:</label>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="customerIdInput" class="flex-grow p-3 border border-zinc-600 rounded-lg bg-zinc-700 text-zinc-100 text-sm" placeholder="أدخل معرف العميل أو قم بالتوليد" readonly>
+                    <button id="generateIdBtn" class="bg-purple-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-purple-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg hidden">
+                        توليد معرف
+                    </button>
+                </div>
+            </div>
+            <div class="mb-4 text-right">
+                <label for="customerNameInput" class="block text-zinc-200 text-sm font-semibold mb-2">اسم العميل:</label>
+                <input type="text" id="customerNameInput" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-zinc-100" placeholder="أدخل اسم العميل">
+            </div>
+            <div class="mb-6 text-right">
+                <label for="customerPhoneInput" class="block text-zinc-200 text-sm font-semibold mb-2">رقم الهاتف:</label>
+                <input type="tel" id="customerPhoneInput" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-zinc-100" placeholder="مثال: 01012345678" pattern="[0-9]{10}">
+            </div>
+
+            <!-- Section for Additional Behavioral Evaluation (now primary) -->
+            <div class="bg-zinc-700 p-6 rounded-lg border border-zinc-600 mb-6 text-right">
+                <h2 class="text-xl font-bold text-zinc-50 mb-4">تقييم السلوك العام للعميل</h2>
+                <div class="mb-4">
+                    <label for="overallBehavior" class="block text-zinc-200 text-sm font-semibold mb-2">التقييم الشامل للسلوك:</label>
+                    <select id="overallBehavior" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-800 text-zinc-100">
+                        <option value="very_positive">إيجابي جداً</option>
+                        <option value="positive">إيجابي</option>
+                        <option value="neutral">محايد</option>
+                        <option value="negative">سلبي</option>
+                        <option value="very_negative">سلبي جداً</option>
+                    </select>
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold text-zinc-200 mb-3">سلوكيات محددة:</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-600">
+                            <label for="cooperative" class="text-zinc-200 text-sm font-medium">التعاون في حل المشكلات:</label>
+                            <select id="cooperative" class="p-2 border border-zinc-600 rounded-md text-sm bg-zinc-700 text-zinc-100">
+                                <option value="yes">نعم</option>
+                                <option value="no">لا</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-600">
+                            <label for="onTimeCommitment" class="text-zinc-200 text-sm font-medium">الالتزام بالمواعيد المحددة:</label>
+                            <select id="onTimeCommitment" class="p-2 border border-zinc-600 rounded-md text-sm bg-zinc-700 text-zinc-100">
+                                <option value="yes">نعم</option>
+                                <option value="no">لا</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-600">
+                            <label for="effectiveCommunication" class="text-zinc-200 text-sm font-medium">التواصل الفعال والمبادر:</label>
+                            <select id="effectiveCommunication" class="p-2 border border-zinc-600 rounded-md text-sm bg-zinc-700 text-zinc-100">
+                                <option value="yes">نعم</option>
+                                <option value="no">لا</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-600">
+                            <label for="frequentUnjustifiedComplaints" class="text-zinc-200 text-sm font-medium">كثرة الشكاوى غير المبررة:</label>
+                            <select id="frequentUnjustifiedComplaints" class="p-2 border border-zinc-600 rounded-md text-sm bg-zinc-700 text-zinc-100">
+                                <option value="no">لا</option>
+                                <option value="yes">نعم</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-600">
+                            <label for="repeatedDelays" class="text-zinc-200 text-sm font-medium">التأخر المتكرر في الاستلام/الدفع:</label>
+                            <select id="repeatedDelays" class="p-2 border border-zinc-600 rounded-md text-sm bg-zinc-700 text-zinc-100">
+                                <option value="no">لا</option>
+                                <option value="yes">نعم</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between bg-zinc-800 p-3 rounded-lg border border-zinc-600">
+                            <label for="improperConduct" class="text-zinc-200 text-sm font-medium">التعامل غير اللائق مع الموظفين:</label>
+                            <select id="improperConduct" class="p-2 border border-zinc-600 rounded-md text-sm bg-zinc-700 text-zinc-100">
+                                <option value="no">لا</option>
+                                <option value="yes">نعم</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <label for="additionalNotes" class="block text-zinc-200 text-sm font-semibold mb-2">ملاحظات إضافية:</label>
+                    <textarea id="additionalNotes" rows="4" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-zinc-100" placeholder="أدخل أي ملاحظات إضافية حول سلوك العميل..."></textarea>
+                </div>
+            </div>
+
+            <button id="calculateBtn" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg">
+                احسب التقييم
+            </button>
+
+            <div id="result" class="mt-8 p-6 bg-zinc-700 rounded-lg border border-zinc-600 text-right hidden">
+                <!-- Removed Total Score display -->
+                <p class="text-lg text-zinc-100">
+                    <span class="font-semibold">فئة العميل:</span> <span id="customerCategory" class="font-bold"></span>
+                </p>
+            </div>
+            <button id="backToLandingFromEvaluation" class="mt-6 w-full md:w-auto bg-zinc-700 text-zinc-100 py-2 px-6 rounded-lg font-semibold hover:bg-zinc-600 transition duration-300 ease-in-out">
+                العودة للصفحة الرئيسية
+            </button>
+        </div>
+
+        <!-- Customer Search Section (Initially Hidden) -->
+        <div id="searchPage" class="hidden">
+            <h1 class="text-3xl font-bold text-zinc-50 mb-6">البحث عن عميل</h1>
+
+            <div class="mb-4 text-right">
+                <label for="customerSearchInput" class="block text-zinc-200 text-sm font-semibold mb-2">أدخل رقم هاتف العميل أو المعرف/الاسم:</label>
+                <input type="text" id="customerSearchInput" class="w-full p-3 border border-zinc-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-zinc-700 text-zinc-100" placeholder="مثال: 01012345678 أو 12345 أو اسم العميل">
+            </div>
+
+            <button id="searchCustomerBtn" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg">
+                بحث
+            </button>
+
+            <div id="searchResults" class="mt-8 p-6 bg-zinc-700 rounded-lg border border-zinc-600 text-right hidden">
+                <!-- Search results will be displayed here -->
+                <p class="text-lg text-zinc-100 mb-2">
+                    <span class="font-semibold">رقم الهاتف:</span> <span id="foundCustomerPhone" class="text-blue-400 font-bold"></span>
+                </p>
+                <p class="text-lg text-zinc-100 mb-2">
+                    <span class="font-semibold">معرف العميل:</span> <span id="foundCustomerId" class="text-blue-400 font-bold"></span>
+                </p>
+                <p class="text-lg text-zinc-100 mb-2">
+                    <span class="font-semibold">الاسم:</span> <span id="foundCustomerName" class="text-blue-400 font-bold"></span>
+                </p>
+                <!-- Removed Total Score display from search results -->
+                <p class="text-lg text-zinc-100">
+                    <span class="font-semibold">فئة العميل:</span> <span id="foundCustomerCategory" class="font-bold"></span>
+                </p>
+                <!-- New button to add evaluation for this customer -->
+                <button id="addEvaluationForFoundCustomerBtn" class="mt-6 w-full bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg">
+                    إضافة تقييم لهذا العميل
+                </button>
+            </div>
+            <button id="backToLandingFromSearch" class="mt-6 w-full md:w-auto bg-zinc-700 text-zinc-100 py-2 px-6 rounded-lg font-semibold hover:bg-zinc-600 transition duration-300 ease-in-out">
+                العودة للصفحة الرئيسية
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Alerts -->
+    <div id="customAlertModal" class="fixed inset-0 bg-gray-600 bg-opacity-70 flex items-center justify-center hidden">
+        <div class="bg-zinc-800 p-6 rounded-lg shadow-xl max-w-sm w-full text-center text-zinc-100">
+            <h3 class="text-xl font-semibold text-zinc-50 mb-4" id="alertTitle">تنبيه</h3>
+            <p class="text-zinc-200 mb-6" id="alertMessage"></p>
+            <button id="closeAlertModal" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">موافق</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full bg-zinc-900 py-4 text-center text-zinc-400 text-sm fixed bottom-0 left-0 z-10">
+        جميع الحقوق محفوظة لـ B-SCORE 2025
+    </footer>
+
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration (Hardcoded for Netlify deployment)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEjwZgqrl1TE-VnwTaZY9eqqk1hpM7QCc",
+            authDomain: "b-score-b00b2.firebaseapp.com",
+            projectId: "b-score-b00b2",
+            storageBucket: "b-score-b00b2.firebasestorage.app",
+            messagingSenderId: "95874908391",
+            appId: "1:95874908391:web:93698dae860c95e8ab2242"
+        };
+
+        // Correctly define appId using the projectId from firebaseConfig
+        const appId = firebaseConfig.projectId; 
+        
+        let app;
+        let auth;
+        let db;
+        let currentUserId = 'غير معروف';
+        let isUserLoggedIn = false;
+
+        // Function to show custom alert modal
+        function showCustomAlert(title, message) {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('customAlertModal').classList.remove('hidden');
+        }
+
+        // Function to hide custom alert modal
+        function hideCustomAlert() {
+            document.getElementById('customAlertModal').classList.add('hidden');
+        }
+
+        // Event listener for closing the custom alert modal
+        document.getElementById('closeAlertModal').addEventListener('click', hideCustomAlert);
+
+        // Initialize Firebase and authenticate
+        window.onload = async function() {
+            try {
+                // Initialize Firebase app
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Listen for auth state changes
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        isUserLoggedIn = true;
+                        console.log("Firebase authenticated. User ID:", currentUserId);
+                    } else {
+                        currentUserId = 'غير معروف';
+                        isUserLoggedIn = false;
+                        // No anonymous sign-in on Netlify unless explicitly needed,
+                        // as it's not tied to Canvas's auto-auth token.
+                        console.log("User not logged in.");
+                    }
+                    updateNavVisibility(); // Update nav visibility after auth state is known
+                });
+
+                // No initialAuthToken for Netlify deployment, so removed signInWithCustomToken
+                
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                showCustomAlert('خطأ في تهيئة Firebase', `حدث خطأ أثناء تهيئة Firebase: ${error.message}`);
+                currentUserId = 'firebase-init-error-' + crypto.randomUUID();
+                updateNavVisibility();
+            }
+        };
+
+        // Get elements for toggling sections
+        const landingPage = document.getElementById('landingPage');
+        const evaluationForm = document.getElementById('evaluationForm');
+        const searchPage = document.getElementById('searchPage');
+        const loginPage = document.getElementById('loginPage'); // New
+        const registerPage = document.getElementById('registerPage'); // New
+
+        const startEvaluationBtn = document.getElementById('startEvaluationBtn');
+        const goToSearchBtn = document.getElementById('goToSearchBtn');
+        const backToLandingFromEvaluation = document.getElementById('backToLandingFromEvaluation');
+        const backToLandingFromSearch = document.getElementById('backToLandingFromSearch');
+        const backToLandingFromLogin = document.getElementById('backToLandingFromLogin'); // New
+        const backToLandingFromRegister = document.getElementById('backToLandingFromRegister'); // New
+
+        // Get elements for evaluation form
+        const customerIdInput = document.getElementById('customerIdInput');
+        const customerNameInput = document.getElementById('customerNameInput');
+        const customerPhoneInput = document.getElementById('customerPhoneInput');
+        const generateIdBtn = document.getElementById('generateIdBtn');
+
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resultDiv = document.getElementById('result');
+        const customerCategorySpan = document.getElementById('customerCategory');
+
+        // Elements for additional behavioral evaluation (now primary)
+        const overallBehaviorSelect = document.getElementById('overallBehavior');
+        const additionalNotesTextarea = document.getElementById('additionalNotes');
+
+        // New specific behavioral inputs
+        const cooperativeSelect = document.getElementById('cooperative');
+        const onTimeCommitmentSelect = document.getElementById('onTimeCommitment');
+        const effectiveCommunicationSelect = document.getElementById('effectiveCommunication');
+        const frequentUnjustifiedComplaintsSelect = document.getElementById('frequentUnjustifiedComplaints');
+        const repeatedDelaysSelect = document.getElementById('repeatedDelays');
+        const improperConductSelect = document.getElementById('improperConduct');
+
+        // Navigation elements
+        const navEvalLink = document.getElementById('navEvalLink');
+        const navSearchLink = document.getElementById('navSearchLink');
+        const navRegisterLink = document.getElementById('navRegisterLink'); 
+        const authButton = document.getElementById('authButton');
+
+        // New landing page specific auth buttons
+        const landingAuthButtonsDiv = document.getElementById('landingAuthButtons');
+        const landingLoginBtn = document.getElementById('landingLoginBtn');
+        const landingRegisterBtn = document.getElementById('landingRegisterBtn');
+        const landingActionButtonsDiv = document.getElementById('landingActionButtons');
+
+        // Login/Register form elements
+        const loginEmailInput = document.getElementById('loginEmail');
+        const loginPasswordInput = document.getElementById('loginPassword');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+
+        const registerEmailInput = document.getElementById('registerEmail');
+        const registerPasswordInput = document.getElementById('registerPassword');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const registerSubmitBtn = document.getElementById('registerSubmitBtn');
+
+        // Elements for search results
+        const searchResultsDiv = document.getElementById('searchResults'); // Corrected: Added definition for searchResultsDiv
+        const foundCustomerPhoneSpan = document.getElementById('foundCustomerPhone');
+        const foundCustomerIdSpan = document.getElementById('foundCustomerId');
+        const foundCustomerNameSpan = document.getElementById('foundCustomerName');
+        const foundCustomerCategorySpan = document.getElementById('foundCustomerCategory');
+        const customerSearchInput = document.getElementById('customerSearchInput');
+        const searchCustomerBtn = document.getElementById('searchCustomerBtn');
+        const addEvaluationForFoundCustomerBtn = document.getElementById('addEvaluationForFoundCustomerBtn');
+
+
+        // Function to update navigation link visibility based on login status
+        function updateNavVisibility() {
+            if (isUserLoggedIn) {
+                navEvalLink.classList.remove('hidden');
+                navSearchLink.classList.remove('hidden');
+                navRegisterLink.classList.add('hidden'); // Hide register link in nav when logged in
+                authButton.textContent = 'تسجيل الخروج';
+                authButton.classList.remove('bg-blue-600');
+                authButton.classList.add('bg-red-600');
+                authButton.classList.remove('hover:bg-blue-700');
+                authButton.classList.add('hover:bg-red-700');
+
+                // Show action buttons, hide auth buttons on landing page
+                landingAuthButtonsDiv.classList.add('hidden');
+                landingActionButtonsDiv.classList.remove('hidden');
+
+            } else {
+                navEvalLink.classList.add('hidden');
+                navSearchLink.classList.add('hidden');
+                navRegisterLink.classList.remove('hidden'); // Show register link in nav when logged out
+                authButton.textContent = 'تسجيل الدخول';
+                authButton.classList.remove('bg-red-600');
+                authButton.classList.add('bg-blue-600');
+                authButton.classList.remove('hover:bg-red-700');
+                authButton.classList.add('hover:bg-blue-700');
+
+                // Show auth buttons, hide action buttons on landing page
+                landingAuthButtonsDiv.classList.remove('hidden');
+                landingActionButtonsDiv.classList.add('hidden');
+            }
+        }
+
+        // Function to show a specific page and hide others
+        function showPage(pageToShow) {
+            landingPage.classList.add('hidden');
+            evaluationForm.classList.add('hidden');
+            searchPage.classList.add('hidden');
+            loginPage.classList.add('hidden'); // Hide login page
+            registerPage.classList.add('hidden'); // Hide register page
+
+            pageToShow.classList.remove('hidden');
+
+            // Adjust container max-width based on the active page
+            if (pageToShow === landingPage) {
+                document.querySelector('.container').style.maxWidth = '700px';
+            } else {
+                document.querySelector('.container').style.maxWidth = '500px';
+            }
+        }
+
+        // Event listeners for page navigation
+        startEvaluationBtn.addEventListener('click', () => {
+            if (isUserLoggedIn) {
+                showPage(evaluationForm);
+                // Clear and reset fields for new evaluation
+                customerIdInput.value = '';
+                customerIdInput.readOnly = false;
+                customerNameInput.value = '';
+                customerNameInput.readOnly = false;
+                customerPhoneInput.value = '';
+                customerPhoneInput.readOnly = false;
+                generateIdBtn.classList.remove('hidden');
+                resultDiv.classList.add('hidden');
+                // Reset additional behavior fields
+                overallBehaviorSelect.value = 'neutral';
+                additionalNotesTextarea.value = '';
+                // Reset new specific behavioral selects
+                cooperativeSelect.value = 'no'; // Default to 'no' for positive traits
+                onTimeCommitmentSelect.value = 'no';
+                effectiveCommunicationSelect.value = 'no';
+                frequentUnjustifiedComplaintsSelect.value = 'no'; // Default to 'no' for negative traits
+                repeatedDelaysSelect.value = 'no';
+                improperConductSelect.value = 'no';
+            } else {
+                showCustomAlert('تسجيل الدخول مطلوب', 'الرجاء تسجيل الدخول للوصول إلى صفحة إضافة التقييم.');
+            }
+        });
+
+        goToSearchBtn.addEventListener('click', () => {
+            if (isUserLoggedIn) {
+                showPage(searchPage);
+                searchResultsDiv.classList.add('hidden');
+                customerSearchInput.value = '';
+            } else {
+                showCustomAlert('تسجيل الدخول مطلوب', 'الرجاء تسجيل الدخول للوصول إلى صفحة البحث عن عميل.');
+            }
+        });
+
+        backToLandingFromEvaluation.addEventListener('click', () => showPage(landingPage));
+        backToLandingFromSearch.addEventListener('click', () => showPage(landingPage));
+        backToLandingFromLogin.addEventListener('click', () => showPage(landingPage)); // New
+        backToLandingFromRegister.addEventListener('click', () => showPage(landingPage)); // New
+
+        // Event listeners for nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (event) => {
+                const targetId = event.target.dataset.target;
+                const targetPage = document.getElementById(targetId);
+
+                // Allow navigation to landing page always
+                if (targetId === 'landingPage') {
+                    showPage(targetPage);
+                } else if (targetId === 'loginPage' || targetId === 'registerPage') { // Allow login/register without being logged in
+                    showPage(targetPage);
+                }
+                else {
+                    // For other pages, check login status
+                    if (isUserLoggedIn) {
+                        showPage(targetPage);
+                        // Specific resets for evaluation/search pages when navigated via nav bar
+                        if (targetId === 'evaluationForm') {
+                            customerIdInput.value = '';
+                            customerIdInput.readOnly = false;
+                            customerNameInput.value = '';
+                            customerNameInput.readOnly = false;
+                            customerPhoneInput.value = '';
+                            customerPhoneInput.readOnly = false;
+                            generateIdBtn.classList.remove('hidden');
+                            resultDiv.classList.add('hidden');
+                            overallBehaviorSelect.value = 'neutral';
+                            additionalNotesTextarea.value = '';
+                            cooperativeSelect.value = 'no';
+                            onTimeCommitmentSelect.value = 'no';
+                            effectiveCommunicationSelect.value = 'no';
+                            frequentUnjustifiedComplaintsSelect.value = 'no';
+                            repeatedDelaysSelect.value = 'no';
+                            improperConductSelect.value = 'no';
+                        } else if (targetId === 'searchPage') {
+                            searchResultsDiv.classList.add('hidden');
+                            customerSearchInput.value = '';
+                        }
+                    } else {
+                        showCustomAlert('تسجيل الدخول مطلوب', 'الرجاء تسجيل الدخول للوصول إلى هذه الصفحة.');
+                    }
+                }
+            });
+        });
+
+        // Event listener for "Register New User" button in nav and on landing page
+        navRegisterLink.addEventListener('click', () => {
+            showPage(registerPage);
+        });
+        landingRegisterBtn.addEventListener('click', () => {
+            showPage(registerPage);
+        });
+
+        // Event listener for landing page Login button
+        landingLoginBtn.addEventListener('click', () => {
+            showPage(loginPage);
+        });
+
+        // Auth button toggle (main login/logout button in nav)
+        authButton.addEventListener('click', async () => {
+            if (auth.currentUser) { // Check if a user is currently logged in via Firebase
+                // Perform logout
+                try {
+                    await signOut(auth);
+                    showCustomAlert('تسجيل الخروج', 'تم تسجيل الخروج بنجاح.');
+                    // onAuthStateChanged will handle updating isUserLoggedIn and UI
+                } catch (error) {
+                    console.error("Error signing out:", error);
+                    showCustomAlert('خطأ في تسجيل الخروج', `حدث خطأ أثناء تسجيل الخروج: ${error.message}`);
+                }
+            } else {
+                // If not logged in, show the login page
+                showPage(loginPage);
+            }
+        });
+
+        // Login form submission
+        loginSubmitBtn.addEventListener('click', async () => {
+            const email = loginEmailInput.value.trim();
+            const password = loginPasswordInput.value.trim();
+
+            if (!email || !password) {
+                showCustomAlert('خطأ في الإدخال', 'الرجاء إدخال البريد الإلكتروني وكلمة المرور.');
+                return;
+            }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showCustomAlert('تسجيل الدخول', 'تم تسجيل الدخول بنجاح!');
+                showPage(landingPage); // Go back to landing page after successful login
+            } catch (error) {
+                console.error("Error logging in:", error);
+                showCustomAlert('خطأ في تسجيل الدخول', `حدث خطأ: ${error.message}`);
+            }
+        });
+
+        // Register form submission
+        registerSubmitBtn.addEventListener('click', async () => {
+            const email = registerEmailInput.value.trim();
+            const password = registerPasswordInput.value.trim();
+            const confirmPassword = confirmPasswordInput.value.trim();
+
+            if (!email || !password || !confirmPassword) {
+                showCustomAlert('خطأ في الإدخال', 'الرجاء تعبئة جميع الحقول.');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showCustomAlert('خطأ في الإدخال', 'كلمتا المرور غير متطابقتين.');
+                return;
+            }
+            if (password.length < 6) {
+                showCustomAlert('كلمة مرور ضعيفة', 'يجب أن تكون كلمة المرور 6 أحرف على الأقل.');
+                return;
+            }
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showCustomAlert('تسجيل ناجح', 'تم إنشاء حسابك بنجاح! يمكنك الآن تسجيل الدخول.');
+                showPage(loginPage); // Redirect to login page after successful registration
+            } catch (error) {
+                console.error("Error registering:", error);
+                showCustomAlert('خطأ في التسجيل', `حدث خطأ: ${error.message}`);
+            }
+        });
+
+
+        // Function to calculate customer score
+        async function calculateCustomerScore() { // Made async for Firestore operations
+            const customerId = customerIdInput.value.trim();
+            const customerName = customerNameInput.value.trim();
+            const customerPhone = customerPhoneInput.value.trim();
+
+            if (!customerPhone && !customerId && !customerName) {
+                showCustomAlert('خطأ في الإدخال', 'الرجاء إدخال رقم هاتف العميل أو معرفه أو اسمه على الأقل.');
+                return;
+            }
+            if (customerPhone && !/^[0-9]{10,11}$/.test(customerPhone)) {
+                showCustomAlert('خطأ في الإدخال', 'الرجاء إدخال رقم هاتف صالح (10 أو 11 رقمًا فقط).');
+                return;
+            }
+
+            const overallBehavior = overallBehaviorSelect.value;
+            const additionalNotes = additionalNotesTextarea.value;
+
+            const cooperative = cooperativeSelect.value;
+            const onTimeCommitment = onTimeCommitmentSelect.value;
+            const effectiveCommunication = effectiveCommunicationSelect.value;
+            const frequentUnjustifiedComplaints = frequentUnjustifiedComplaintsSelect.value;
+            const repeatedDelays = repeatedDelaysSelect.value;
+            const improperConduct = improperConductSelect.value;
+
+            let score = 0;
+            switch (overallBehavior) {
+                case 'very_positive': score = 10; break;
+                case 'positive': score = 7; break;
+                case 'neutral': score = 0; break;
+                case 'negative': score = -7; break;
+                case 'very_negative': score = -10; break;
+                default: score = 0; break;
+            }
+
+            // Adjust score based on specific behavioral traits
+            if (cooperative === 'yes') score += 3;
+            if (onTimeCommitment === 'yes') score += 3;
+            if (effectiveCommunication === 'yes') score += 3;
+            if (frequentUnjustifiedComplaints === 'yes') score -= 3;
+            if (repeatedDelays === 'yes') score -= 3;
+            if (improperConduct === 'yes') score -= 3;
+
+            let category = '';
+            // Define categories based on the new simplified score range
+            if (score >= 10) {
+                category = 'عميل ممتاز (VIP)';
+                customerCategorySpan.className = 'text-green-400 font-bold';
+            } else if (score >= 4) {
+                category = 'عميل جيد';
+                customerCategorySpan.className = 'text-blue-400 font-bold';
+            } else if (score >= -4) {
+                category = 'عميل بحاجة لتحسين';
+                customerCategorySpan.className = 'text-orange-400 font-bold';
+            } else {
+                category = 'عميل إشكالي';
+                customerCategorySpan.className = 'text-red-400 font-bold';
+            }
+
+            customerCategorySpan.textContent = category;
+            resultDiv.classList.remove('hidden');
+
+            // Firestore Integration: Save/Update customer data
+            if (db && currentUserId !== 'غير معروف') {
+                const customerData = {
+                    id: customerId || 'auto_gen_' + crypto.randomUUID().substring(0, 8), // Generate ID if not provided
+                    name: customerName,
+                    phone: customerPhone,
+                    overallBehavior,
+                    cooperative,
+                    onTimeCommitment,
+                    effectiveCommunication,
+                    frequentUnjustifiedComplaints,
+                    repeatedDelays,
+                    improperConduct,
+                    additionalNotes,
+                    score,
+                    category,
+                    lastEvaluatedBy: currentUserId,
+                    lastEvaluatedAt: new Date()
+                };
+
+                try {
+                    // Check if customer exists by phone number or ID
+                    let customerDocRef;
+                    let existingCustomer = null;
+
+                    if (customerPhone) {
+                        const q = query(collection(db, `artifacts/${appId}/users/${currentUserId}/customers`), where("phone", "==", customerPhone));
+                        const querySnapshot = await getDocs(q);
+                        if (!querySnapshot.empty) {
+                            existingCustomer = querySnapshot.docs[0];
+                            customerDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/customers`, existingCustomer.id);
+                        }
+                    } else if (customerId && customerId.startsWith('cust_')) { // Only search by existing customerId if it's a known format
+                         const customerDoc = await getDoc(doc(db, `artifacts/${appId}/users/${currentUserId}/customers`, customerId));
+                         if (customerDoc.exists()) {
+                             existingCustomer = customerDoc;
+                             customerDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/customers`, customerId);
+                         }
+                    }
+
+                    if (existingCustomer) {
+                        await setDoc(customerDocRef, customerData, { merge: true }); // Merge to update existing fields
+                        showCustomAlert('تم التحديث', 'تم تحديث بيانات العميل بنجاح في قاعدة البيانات.');
+                    } else {
+                        // Add new document with auto-generated ID if not found, or use provided ID
+                        const newDocRef = doc(collection(db, `artifacts/${appId}/users/${currentUserId}/customers`), customerData.id);
+                        await setDoc(newDocRef, customerData);
+                        showCustomAlert('تم الحفظ', 'تم حفظ بيانات العميل بنجاح في قاعدة البيانات.');
+                        customerIdInput.value = customerData.id; // Update UI with new ID
+                    }
+                } catch (e) {
+                    console.error("Error adding/updating document: ", e);
+                    showCustomAlert('خطأ في حفظ البيانات', `حدث خطأ أثناء حفظ بيانات العميل: ${e.message}`);
+                }
+            } else {
+                console.warn("Firebase or user not initialized. Data not saved to Firestore.");
+                showCustomAlert('تنبيه', 'البيانات لم يتم حفظها. يرجى التأكد من تسجيل الدخول وتهيئة Firebase.');
+            }
+        }
+
+        // Function to search customer from Firestore
+        async function searchCustomer() {
+            const searchTerm = customerSearchInput.value.trim();
+            searchResultsDiv.classList.add('hidden'); // Hide previous results
+
+            if (!searchTerm) {
+                showCustomAlert('خطأ في البحث', 'الرجاء إدخال رقم هاتف العميل أو المعرف/الاسم للبحث.');
+                return;
+            }
+
+            let foundCustomer = null;
+
+            if (db && currentUserId !== 'غير معروف') {
+                const customersCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/customers`);
+                let q;
+
+                // 1. Try to find by phone number (exact match)
+                if (searchTerm.startsWith('0') && searchTerm.length >= 10 && searchTerm.length <= 11 && /^[0-9]+$/.test(searchTerm)) {
+                    q = query(customersCollectionRef, where("phone", "==", searchTerm));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                        foundCustomer = querySnapshot.docs[0].data();
+                    }
+                }
+
+                // 2. If not found by phone, try to find by ID
+                if (!foundCustomer) {
+                    q = query(customersCollectionRef, where("id", "==", searchTerm));
+                    let querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                        foundCustomer = querySnapshot.docs[0].data();
+                    }
+                }
+
+                // 3. If still not found, try to find by Name
+                if (!foundCustomer) {
+                    q = query(customersCollectionRef, where("name", "==", searchTerm));
+                    let querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                        foundCustomer = querySnapshot.docs[0].data();
+                    }
+                }
+            } else {
+                console.warn("Firebase not initialized or user not logged in. Cannot search Firestore.");
+                showCustomAlert('تنبيه', 'لا يمكن البحث. يرجى التأكد من تسجيل الدخول وتهيئة Firebase.');
+                return;
+            }
+
+            if (foundCustomer) {
+                foundCustomerPhoneSpan.textContent = foundCustomer.phone || 'غير متوفر';
+                foundCustomerIdSpan.textContent = foundCustomer.id;
+                foundCustomerNameSpan.textContent = foundCustomer.name;
+                foundCustomerCategorySpan.textContent = foundCustomer.category;
+
+                // Set color for category
+                if (foundCustomer.category.includes('ممتاز')) {
+                    foundCustomerCategorySpan.className = 'text-green-400 font-bold';
+                } else if (foundCustomer.category.includes('جيد')) {
+                    foundCustomerCategorySpan.className = 'text-blue-400 font-bold';
+                } else if (foundCustomer.category.includes('تحسين')) {
+                    foundCustomerCategorySpan.className = 'text-orange-400 font-bold';
+                } else {
+                    foundCustomerCategorySpan.className = 'text-red-400 font-bold';
+                }
+
+                searchResultsDiv.classList.remove('hidden');
+
+                // Store the found customer's ID, name, and phone in dataset for the "Add Evaluation" button
+                addEvaluationForFoundCustomerBtn.dataset.customerId = foundCustomer.id;
+                addEvaluationForFoundCustomerBtn.dataset.customerName = foundCustomer.name;
+                addEvaluationForFoundCustomerBtn.dataset.customerPhone = foundCustomer.phone;
+
+            } else {
+                showCustomAlert('لم يتم العثور على العميل', `لم يتم العثور على عميل برقم الهاتف/المعرف/الاسم: "${searchTerm}".`);
+            }
+        }
+
+        // Add event listeners
+        calculateBtn.addEventListener('click', calculateCustomerScore);
+        searchCustomerBtn.addEventListener('click', searchCustomer);
+
+        // Event listener for "Add Evaluation for this Customer" button
+        addEvaluationForFoundCustomerBtn.addEventListener('click', async () => {
+            const customerId = addEvaluationForFoundCustomerBtn.dataset.customerId;
+            const customerName = addEvaluationForFoundCustomerBtn.dataset.customerName;
+            const customerPhone = addEvaluationForFoundCustomerBtn.dataset.customerPhone;
+
+            customerIdInput.value = customerId;
+            customerIdInput.readOnly = true;
+            customerNameInput.value = customerName;
+            customerNameInput.readOnly = true;
+            customerPhoneInput.value = customerPhone;
+            customerPhoneInput.readOnly = true;
+            generateIdBtn.classList.add('hidden');
+
+            // Fetch full customer data from Firestore using the stored customerId
+            let foundCustomerData = null;
+            if (db && currentUserId !== 'غير معروف' && customerId) {
+                try {
+                    const docRef = doc(db, `artifacts/${appId}/users/${currentUserId}/customers`, customerId);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        foundCustomerData = docSnap.data();
+                    }
+                } catch (e) {
+                    console.error("Error fetching customer data for pre-fill:", e);
+                }
+            }
+            
+            if (foundCustomerData) {
+                overallBehaviorSelect.value = foundCustomerData.overallBehavior || 'neutral';
+                additionalNotesTextarea.value = foundCustomerData.additionalNotes || '';
+                cooperativeSelect.value = foundCustomerData.cooperative || 'no';
+                onTimeCommitmentSelect.value = foundCustomerData.onTimeCommitment || 'no';
+                effectiveCommunicationSelect.value = foundCustomerData.effectiveCommunication || 'no';
+                frequentUnjustifiedComplaintsSelect.value = foundCustomerData.frequentUnjustifiedComplaints || 'no';
+                repeatedDelaysSelect.value = foundCustomerData.repeatedDelays || 'no';
+                improperConductSelect.value = foundCustomerData.improperConduct || 'no';
+            } else {
+                // If data not found in Firestore (e.g., if it was a mock customer or an error),
+                // reset fields to default for a fresh evaluation.
+                overallBehaviorSelect.value = 'neutral';
+                additionalNotesTextarea.value = '';
+                cooperativeSelect.value = 'no';
+                onTimeCommitmentSelect.value = 'no';
+                effectiveCommunicationSelect.value = 'no';
+                frequentUnjustifiedComplaintsSelect.value = 'no';
+                repeatedDelaysSelect.value = 'no';
+                improperConductSelect.value = 'no';
+            }
+
+            showPage(evaluationForm);
+            resultDiv.classList.add('hidden');
+        });
+
+        // Event listener for "Generate New ID" button
+        generateIdBtn.addEventListener('click', () => {
+            customerIdInput.value = 'new_cust_' + crypto.randomUUID().substring(0, 8);
+            customerIdInput.readOnly = true;
+            generateIdBtn.classList.add('hidden');
+        });
+
+        // Auth button toggle
+        // This button now correctly handles Firebase sign-in/sign-out based on user's actual auth state
+        authButton.addEventListener('click', async () => {
+            if (auth.currentUser) { // Check if a user is currently logged in via Firebase
+                // Perform logout
+                try {
+                    await signOut(auth);
+                    showCustomAlert('تسجيل الخروج', 'تم تسجيل الخروج بنجاح.');
+                    // onAuthStateChanged will handle updating isUserLoggedIn and UI
+                } catch (error) {
+                    console.error("Error signing out:", error);
+                    showCustomAlert('خطأ في تسجيل الخروج', `حدث خطأ أثناء تسجيل الخروج: ${error.message}`);
+                }
+            } else {
+                // If not logged in, show the login page
+                showPage(loginPage);
+            }
+        });
+
+        // Initial update of navigation visibility on page load
+        updateNavVisibility();
+    </script>
+</body>
+</html>
